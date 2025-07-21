@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Profile Form</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <style>
+    body {
+      background-color: #f8fafc;
+    }
+
+    .form-container {
+      max-width: 900px;
+      margin: auto;
+      border: 2px solid #000;
+      padding: 30px;
+      border-radius: 12px;
+      background: white;
+    }
+  </style>
+
+  <script>
+    function showPrev(fileRef, imgRef) {
+      const [file] = fileRef.files;
+      if (file) imgRef.src = URL.createObjectURL(file);
+    }
+
+    function validateForm() {
+      const dob = document.querySelector("input[name='dob']").value.trim();
+      if (!dob) {
+        alert("Please select a valid Date of Birth.");
+        return false;
+      }
+      return true;
+    }
+
+    $(document).ready(function () {
+      $("#btnGetPlayer").click(function () {
+        const email = $("#email").val().trim();
+        if (!email) {
+          alert("Please enter Email ID first");
+          return;
+        }
+
+        $.ajax({
+          type: "get",
+          url: "/get-player-by-email",
+          data: { email: email }
+        }).then(function (data) {
+          if (typeof data === "string") {
+            alert(data);
+          } else {
+            $("input[name='name']").val(data.name);
+            $("input[name='dob']").val(data.dob);
+            $("select[name='gender']").val(data.gender);
+            $("input[name='contact']").val(data.contact);
+            $("input[name='address']").val(data.address);
+            $("select[name='games']").val(data.game); 
+            $("textarea[name='otherinfo']").val(data.otherinfo);
+
+            if (data.acardpicurl && data.acardpicurl !== "nopic.jpg")
+              $("#aadhaarPrev").attr("src", data.acardpicurl);
+
+            if (data.profilepicurl && data.profilepicurl !== "nopic.jpg")
+              $("#profilePrev").attr("src", data.profilepicurl);
+          }
+        }).fail(function (err) {
+          alert("Server error: " + err.responseText);
+        });
+      });
+    });
+  </script>
+  <script>
+  function handleAadhaarUpload(input) {
+    const file = input.files[0];
+    showPrev(input, document.getElementById('aadhaarPrev'));
+
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("aadhaar", file);
+
+    $("input, select, button").prop("disabled", true);
+    $("#aadhaarLoader").show();
+
+    fetch("/extract-aadhaar-ai", {
+      method: "POST",
+      body: formData
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Server returned an error");
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log(" Extracted Aadhaar Data:", data);
+
+        if (data.error) {
+          alert("Error: " + data.error);
+        } else {
+          if (data.name) $("input[name='name']").val(data.name);
+
+          const dobRaw = data.dob || data.DOB || data.date_of_birth;
+          if (dobRaw) {
+            const parts = dobRaw.includes("/") ? dobRaw.split("/") : dobRaw.split("-");
+            if (parts.length === 3) {
+              const dobFormatted = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+              $("input[name='dob']").val(dobFormatted);
+            }
+          }
+
+          const genderRaw = (data.gender || data.Gender || "").toLowerCase();
+          const genderFormatted = genderRaw.charAt(0).toUpperCase() + genderRaw.slice(1);
+          if (["Male", "Female", "Other"].includes(genderFormatted)) {
+            $("select[name='gender']").val(genderFormatted);
+          }
+        }
+      })
+      .catch(err => {
+        console.error("AI Extraction Error:", err);
+        alert("Failed to extract Aadhaar details.");
+      })
+      .finally(() => {
+        $("input, select, button").prop("disabled", false);
+        $("#aadhaarLoader").hide(); 
+      });
+  }
+</script>
+<script>
+  function showUser(){
+    let activeUser=localStorage.getItem("activeUser");
+    document.getElementById("email").value=activeUser;
+  }
+</script>
+
+
+</head>
+
+<body onload="showUser();">
+  <div class="container my-5">
+    <div class="form-container shadow">
+      <h3 class="text-center mb-4">Player Profile Form</h3>
+      <form method="post" enctype="multipart/form-data" action="/save-player-profile">
+        <div class="row mb-3">
+          <div class="col-md-10">
+            <label>Email ID</label>
+            <input type="email" class="form-control" name="emailid" id="email" required />
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="button" class="btn btn-dark w-100" id="btnGetPlayer">Get Data</button>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label>Upload Front of Aadhaar Card</label>
+            <input type="file" class="form-control" name="aadhaar" id="aadhaarInput" accept="image/*"
+              onchange="handleAadhaarUpload(this)" />
+            <img id="aadhaarPrev" class="mt-2 img-thumbnail" style="width: 100px; height: 100px;" />
+
+            <div id="aadhaarLoader" class="text-primary mt-2" style="display: none;">
+              <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+              Verifying Aadhaar... Please wait.
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label>Profile Pic</label>
+            <input type="file" class="form-control" name="profilepic" accept="image/*"
+              onchange="showPrev(this, document.getElementById('profilePrev'))" />
+            <img id="profilePrev" class="mt-2 img-thumbnail" style="width: 100px; height: 100px;" />
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label>Name</label>
+            <input type="text" class="form-control" name="name" required />
+          </div>
+          <div class="col-md-6">
+            <label>Date of Birth (DOB)</label>
+            <input type="date" class="form-control" name="dob" required />
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label>Gender</label>
+            <select class="form-select" name="gender" required>
+              <option selected disabled value="">Select Gender</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label>Contact Number</label>
+            <input type="tel" class="form-control" name="contact" />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label>Address</label>
+          <input type="text" class="form-control" name="address" placeholder="Street No, City" />
+        </div>
+
+        <div class="mb-3">
+          <label>Interested Games</label>
+          <select class="form-select" name="games" required>
+            <option selected disabled value="">Choose...</option>
+            <option>Cricket</option>
+            <option>Football</option>
+            <option>Basketball</option>
+            <option>Badminton</option>
+            <option>Hockey</option>
+            <option>Kho Kho</option>
+            <option>Kabaddi</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label>Other Info</label>
+          <textarea class="form-control" name="otherinfo" rows="3"></textarea>
+        </div>
+
+        <div class="text-center">
+          <button type="submit" class="btn btn-dark me-3">Upload Data</button>
+          <button type="submit" formaction="/modify-player-profile" onclick="return validateForm()"
+            class="btn btn-secondary">Modify</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

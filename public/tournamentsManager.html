@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="kuchModule">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fetch Events by Email</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script>
+
+  <script>
+    var mymodule = angular.module("kuchModule", []);
+
+    mymodule.controller("kuchController", function ($scope, $http) {
+      $scope.emailToSearch = "";
+      $scope.eventsArray = [];
+
+      $scope.doFetchEventsByEmail = function () {
+        if (!$scope.emailToSearch) {
+          alert("Please enter an email ID.");
+          return;
+        }
+
+        var url = "/do-fetch-all-users?emailid=" + encodeURIComponent($scope.emailToSearch);
+        $http.get(url).then(
+          function success(response) {
+            $scope.eventsArray = response.data;
+            if (response.data.length === 0) {
+              alert("No tournaments found for this email.");
+            }
+          },
+          function error(response) {
+            alert("Error: " + JSON.stringify(response.data));
+          }
+        );
+      };
+
+      $scope.doDeleteEvent = function (id) {
+        $http.get("/delete-event?id=" + id).then(
+          function success(response) {
+            alert(response.data);
+            $scope.doFetchEventsByEmail();
+          },
+          function error(response) {
+            alert("Error: " + JSON.stringify(response.data));
+          }
+        );
+      };
+    });
+  </script>
+  
+</head>
+
+<body ng-controller="kuchController">
+  <div class="container mt-5">
+    <div class="card p-4 shadow">
+      <h3 class="text-center mb-4">Search Events </h3>
+
+      <div class="input-group mb-4">
+        <input type="email" class="form-control" ng-model="emailToSearch" placeholder="Enter email ID..." />
+        <button class="btn btn-primary" ng-click="doFetchEventsByEmail()">Fetch Events</button>
+      </div>
+
+      <div class="table-responsive" ng-if="eventsArray.length > 0">
+        <table class="table table-bordered text-center table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Sr. No</th>
+              <th>Title</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>City</th>
+              <th>Sport</th>
+              <th>Min Age</th>
+              <th>Max Age</th>
+              <th>Last Date</th>
+              <th>Fee</th>
+              <th>Prize</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="event in eventsArray">
+              <td>{{$index + 1}}</td>
+              <td>{{event.title}}</td>
+              <td>{{event.event_date}}</td>
+              <td>{{event.event_time}}</td>
+              <td>{{event.city}}</td>
+              <td>{{event.sports}}</td>
+              <td>{{event.minage}}</td>
+              <td>{{event.maxage}}</td>
+              <td>{{event.lastdate}}</td>
+              <td>{{event.fee}}</td>
+              <td>{{event.prize}}</td>
+              <td>
+                <button class="btn btn-sm btn-danger" ng-click="doDeleteEvent(event.id)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

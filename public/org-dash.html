@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organizer Details Card</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    .card-img-top {
+      width: 200px;
+      height: 250px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin: 20px auto 10px;
+      display: block;
+    }
+
+    .card {
+      height: 100%;
+    }
+  </style>
+  <script>
+    function showUser() {
+  let activeUser = localStorage.getItem("activeUser");
+  document.getElementById("welcome").innerHTML = activeUser;
+}
+</script>
+</head>
+
+<body class="bg-light" onload="showUser();">
+ <div class="row ">
+        <div class="col-md-12  bg-primary text-white" style="padding:14px 0px 14px 0px;">
+            www.sportsdata.com
+                  <div class="me-5 bg-primary">Welcome : <span id="welcome"></span> </div>
+
+        </div>
+    </div>
+  <div class="container py-5">
+    <div class="row justify-content-center g-4">
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="card text-center shadow h-100">
+          <img
+            src="https://thumbs.dreamstime.com/b/server-administrator-icon-man-data-storage-outline-graphic-minimalist-depicting-represented-faceless-person-standing-388739101.jpg"
+            class="card-img-top" alt="Organizer">
+          <div class="card-body">
+            <h5 class="card-title">Organizer Details</h5>
+            <a href="./org-details.html" class="btn btn-danger mt-3">Org. Details</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="card text-center shadow h-100">
+          <img
+            src="https://thumbs.dreamstime.com/b/supplier-agreement-line-color-icon-event-management-sign-web-page-mobile-app-button-logo-vector-isolated-element-editable-191711094.jpg"
+            class="card-img-top" alt="Organizer">
+          <div class="card-body">
+            <h5 class="card-title">Post New Events</h5>
+            <a href="./post-tournaments.html" class="btn btn-danger mt-3">Explore Events</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="card text-center shadow h-100">
+          <img
+            src="https://media.istockphoto.com/id/1416937202/vector/settings-or-gear-icon-cog-setting-vector-illustration.jpg?s=612x612&w=0&k=20&c=3vVNW4ssuNPwKUMT5HSMEbUlknZmp5FeEBF1eZTzJYA="
+            class="card-img-top" alt="Organizer">
+          <div class="card-body">
+            <h5 class="card-title">Manage Tournament</h5>
+            <a href="./tournamentsManager.html" class="btn btn-danger mt-3">Manage Events</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="card text-center shadow h-100">
+          <img
+            src="https://static.vecteezy.com/system/resources/previews/047/820/100/non_2x/logout-icon-linear-logo-mark-in-black-and-white-vector.jpg">
+          <div class="card-body">
+            <h5 class="card-title">Organizer</h5>
+            <a href="#" class="btn btn-danger mt-3">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

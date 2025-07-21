@@ -1,0 +1,241 @@
+<!-- <!DOCTYPE html>
+<html lang="en" ng-app="tournamentModule">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tournaments</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script>
+
+    <script>
+        var app = angular.module("tournamentModule", []);
+
+        app.controller("tournamentController", function ($scope, $http) {
+            $scope.tournaments = [];
+            $scope.oneTournament = {};
+
+            $scope.fetchAll = function () {
+                $http.get("/fetch-all-tournaments").then(function (response) {
+                    $scope.tournaments = response.data;
+                }, function (error) {
+                    alert("Error fetching tournaments: " + error.data);
+                });
+            };
+
+            $scope.showDetails = function (index) {
+                $scope.oneTournament = $scope.tournaments[index];
+            };
+
+        });
+    </script>
+</head>
+
+<body ng-controller="tournamentController" ng-init="fetchAll()">
+    <div class="container my-5">
+        <h2 class="text-center">Tournaments</h2>
+        <div class="text-end mb-3">
+            <button class="btn btn-dark" ng-click="fetchAll()">Refresh</button>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-4" ng-repeat="obj in tournaments">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ obj.title }}</h5>
+                        <p class="card-text">
+                            <strong>Date:</strong> {{ obj.event_date }}<br />
+                            <strong>City:</strong> {{ obj.city }}<br />
+                            <strong>Sports:</strong> {{ obj.sports }}<br />
+                            <strong>Prize:</strong> ₹{{ obj.prize }}<br />
+                        </p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tournamentModal"
+                            ng-click="showDetails($index)">Details</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="tournamentModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tournament Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Email:</strong> {{ oneTournament.emailid }}</p>
+                    <p><strong>Title:</strong> {{ oneTournament.title }}</p>
+                    <p><strong>Date:</strong> {{ oneTournament.event_date }}</p>
+                    <p><strong>Time:</strong> {{ oneTournament.event_time }}</p>
+                    <p><strong>City:</strong> {{ oneTournament.city }}</p>
+                    <p><strong>Address:</strong> {{ oneTournament.address }}</p>
+                    <p><strong>Age Limit:</strong> {{ oneTournament.minage }} to {{ oneTournament.maxage }}</p>
+                    <p><strong>Last Date:</strong> {{ oneTournament.lastdate }}</p>
+                    <p><strong>Fee:</strong> ₹{{ oneTournament.fee }}</p>
+                    <p><strong>Prize:</strong> ₹{{ oneTournament.prize }}</p>
+                    <p><strong>Contact:</strong> {{ oneTournament.contact }}</p>
+                    <p><strong>Created At:</strong> {{ oneTournament.created_at }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en" ng-app="tournamentModule">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tournaments</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script>
+
+    <script>
+        var app = angular.module("tournamentModule", []);
+
+        app.controller("tournamentController", function ($scope, $http) {
+            $scope.tournaments = [];
+            $scope.oneTournament = {};
+            $scope.cityList = [];
+            $scope.selectedCity = "";
+            $scope.selectedSport = "";
+
+            // Fetch all cities for dropdown
+            $scope.fetchCities = function () {
+                $http.get("/do-fetch-all-cities").then(function (response) {
+                    $scope.cityList = response.data;
+                }, function (error) {
+                    alert("Error fetching cities: " + error.data);
+                });
+            };
+
+            // Fetch tournaments by filter
+            $scope.searchFilteredTournaments = function () {
+                if (!$scope.selectedCity || !$scope.selectedSport) {
+                    alert("Please select both city and sport.");
+                    return;
+                }
+
+                const url = `/do-fetch-all-tournaments?kuchCity=${$scope.selectedCity}&kuchGame=${$scope.selectedSport}`;
+                $http.get(url).then(function (response) {
+                    $scope.tournaments = response.data;
+                }, function (error) {
+                    alert("Error fetching tournaments: " + error.data);
+                });
+            };
+
+            // Reset to show empty (or optionally fetch all unfiltered)
+            $scope.reset = function () {
+                $scope.tournaments = [];
+                $scope.selectedCity = "";
+                $scope.selectedSport = "";
+            };
+
+            // Show details
+            $scope.showDetails = function (index) {
+                $scope.oneTournament = $scope.tournaments[index];
+            };
+        });
+    </script>
+</head>
+
+<body ng-controller="tournamentController" ng-init="fetchCities()">
+    <div class="container my-5">
+        <h2 class="text-center mb-4">Search Tournaments</h2>
+
+        <div class="row mb-4">
+            <div class="col-md-3 ">
+                <select class="form-select" ng-model="selectedSport">
+                    <option value="">-- Select Sport --</option>
+                     <option>Cricket</option>
+                            <option>Football</option>
+                            <option>Basketball</option>
+                            <option>Tennis</option>
+                            <option>Badminton</option>
+                            <option>Hockey</option>
+                            <option>Volleyball</option>
+                            <option>Baseball</option>
+                            <option>Kabaddi</option>
+                            <option>Kho Kho</option>
+                            <option>Athletics</option>
+                            <option>Shooting</option>
+                            <option>Table Tennis</option>
+                            <option>Boxing</option>
+                            <option>Wrestling</option>
+                            <option>Swimming</option>
+                            <option>Skating</option>
+                            <option>Karate</option>
+                            <option>Chess</option>
+                            <option>Esports</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" ng-model="selectedCity">
+                    <option value="">-- Select City --</option>
+                    <option ng-repeat="c in cityList" value="{{c.city}}">{{c.city}}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-success w-100" ng-click="searchFilteredTournaments()">Search</button>
+            </div>
+           
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-4" ng-repeat="obj in tournaments">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ obj.eventTitle }}</h5>
+                        <p class="card-text">
+                            <strong>Date:</strong> {{ obj.event_date }}<br />
+                            <strong>City:</strong> {{ obj.city }}<br />
+                            <strong>Sports:</strong> {{ obj.sports }}<br />
+                            <strong>Prize:</strong> ₹{{ obj.prize }}<br />
+                        </p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tournamentModal"
+                            ng-click="showDetails($index)">Details</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <!-- Tournament Modal -->
+    <div class="modal fade" id="tournamentModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tournament Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Email:</strong> {{ oneTournament.emailid }}</p>
+                    <p><strong>Title:</strong> {{ oneTournament.title }}</p>
+                    <p><strong>Date:</strong> {{ oneTournament.event_date }}</p>
+                    <p><strong>Time:</strong> {{ oneTournament.event_time }}</p>
+                    <p><strong>City:</strong> {{ oneTournament.city }}</p>
+                    <p><strong>Address:</strong> {{ oneTournament.address }}</p>
+                    <p><strong>Age Limit:</strong> {{ oneTournament.minage }} to {{ oneTournament.maxage }}</p>
+                    <p><strong>Last Date:</strong> {{ oneTournament.lastdate }}</p>
+                    <p><strong>Fee:</strong> ₹{{ oneTournament.fee }}</p>
+                    <p><strong>Prize:</strong> ₹{{ oneTournament.prize }}</p>
+                    <p><strong>Contact:</strong> {{ oneTournament.contact }}</p>
+                    <p><strong>Created At:</strong> {{ oneTournament.created_at }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

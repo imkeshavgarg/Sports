@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="kuchModule">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Players List</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    var mymodule = angular.module("kuchModule", []);
+
+    mymodule.controller("kuchController", function ($scope, $http) {
+      $scope.jsonArray = [];
+      $scope.oneRecord = {};
+
+      $scope.doFetchAll = function () {
+        $http.get("/fetch-all-players").then(
+          function (response) {
+            $scope.jsonArray = response.data;
+          },
+          function (error) {
+            alert("Error fetching players: " + JSON.stringify(error.data));
+          }
+        );
+      };
+
+      $scope.doShowDetails = function (index) {
+        $scope.oneRecord = $scope.jsonArray[index];
+      };
+    });
+  </script>
+</head>
+
+<body ng-controller="kuchController" ng-init="doFetchAll()">
+  <div class="container my-4">
+    <h2 class="text-center mb-4">All Player Records</h2>
+
+    <div class="row">
+      <div class="col-md-4 mb-4" ng-repeat="obj in jsonArray">
+        <div class="card shadow-sm">
+          <img ng-src="{{obj.profilepicurl}}" class="card-img-top" alt="Profile Pic" height="200" />
+          <div class="card-body">
+            <h5 class="card-title">{{obj.name}}</h5>
+            <p class="card-text"><strong>Email:</strong> {{obj.emailid}}</p>
+            <p class="card-text"><strong>Game:</strong> {{obj.game}}</p>
+            <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#detailsModal" ng-click="doShowDetails($index)">
+              View Details
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Player Details -->
+  <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="playerDetailsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="playerDetailsLabel">Player Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 text-center">
+              <h6>Aadhaar Image</h6>
+              <img ng-src="{{oneRecord.acardpicurl}}" class="img-fluid img-thumbnail" style="max-height: 200px;" />
+            </div>
+            <div class="col-md-6 text-center">
+              <h6>Profile Picture</h6>
+              <img ng-src="{{oneRecord.profilepicurl}}" class="img-fluid img-thumbnail" style="max-height: 200px;" />
+            </div>
+          </div>
+          <hr />
+          <p><strong>Name:</strong> {{oneRecord.name}}</p>
+          <p><strong>Email:</strong> {{oneRecord.emailid}}</p>
+          <p><strong>Date of Birth:</strong> {{oneRecord.dob}}</p>
+          <p><strong>Gender:</strong> {{oneRecord.gender}}</p>
+          <p><strong>Contact:</strong> {{oneRecord.contact}}</p>
+          <p><strong>Address:</strong> {{oneRecord.address}}</p>
+          <p><strong>Game:</strong> {{oneRecord.game}}</p>
+          <p><strong>Other Info:</strong> {{oneRecord.otherinfo}}</p>
+          <p><strong>Info:</strong> {{oneRecord.info}}</p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
