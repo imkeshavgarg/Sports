@@ -5,183 +5,233 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Signup Page</title>
-
+<link rel="stylesheet" href="style.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
 
-  <style>
-    .box {
-      display: none;
-      max-width: 500px;
-      margin: 30px auto;
-      background-color: #f8f9fa;
-      padding: 25px;
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-      position: relative;
-    }
 
-    .close-btn {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: #888;
-    }
-
-    .close-btn:hover {
-      color: #000;
-    }
-  </style>
-
-  <script>
-    $(document).ready(function () {
-      $("#btnSignup").click(function () {
-        $(".box").slideUp();
-        $("#signupBox").slideToggle();
-      });
-
-      $("#btnLogin").click(function () {
-        $(".box").slideUp();
-        $("#loginBox").slideToggle();
-      });
-
-      $(".close-btn").click(function () {
-        $(this).closest(".box").slideUp();
-      });
-
-      $("#signupBtn").click(function () {
-        let email = $("#txtEmail").val();
-        let pwd = $("#txtPwd").val();
-        let userType = $("#comboUser").val();
-
-        if (email === "" || pwd === "" || userType === "") {
-          alert("Please fill all fields.");
-          return;
-        }
-
-        $.ajax({
-          type: "POST",
-          url: "/server-signup",
-          data: {
-            txtEmail: email,
-            txtPwd: pwd,
-            comboUser: userType
-          }
-        })
-          .done(function (response) {
-            alert(response);
-            $("#signupForm")[0].reset();
-          })
-          .fail(function (err) {
-            alert("Error: " + err.responseText);
-          });
-      });
-
-      // Login AJAX
-      /* $("#loginBtn").click(function () {
-        let email = $("#loginEmail").val();
-        let pwd = $("#loginPwd").val();
-
-        if (email === "" || pwd === "") {
-          alert("Please enter both email and password.");
-          return;
-        }
-
-        $.ajax({
-          type: "GET",
-          url: "/do-login",
-          data: {
-            txtEmail: email,
-            txtPwd: pwd
-          }
-        })
-          .done(function (response) {
-            alert(response);
-            $("#loginForm")[0].reset();
-          })
-          .fail(function (err) {
-            alert("Error: " + err.responseText);
-          });
-      }); */
-      $("#loginBtn").click(function () {
-        let email = $("#loginEmail").val();
-        let pwd = $("#loginPwd").val();
-
-        if (email === "" || pwd === "") {
-          alert("Please enter both email and password.");
-          return;
-        }
-
-        $.ajax({
-          type: "GET",
-          url: "/do-login",
-          data: {
-            txtEmail: email,
-            txtPwd: pwd
-          }
-        })
-          .then(function (response) {
-  console.log("Login response:", response); // Add this to debug
-
-  if (response === "Blocked") {
-    alert("Sorry!! Your ID is Blocked");
-  } else if (response === "Invalid") {
-    alert("Invalid email ID or password");
-  } else {
-    const role = response.trim().toLowerCase();
-
-    if (role === "player") {
-      localStorage.setItem("activeUser",email);
-      location.href = "player-dash.html";
-    } else if (role === "organizer") {
-            localStorage.setItem("activeUser",email);
-      location.href = "org-dash.html";
-    } else if (role === "admin") {
-            localStorage.setItem("activeUser",email);
-      location.href = "dashAdmin.html";
-    } else {
-      alert("Unexpected role: " + response); // ← If you still get this, check console
-    }
+<script>
+  // Modal show/hide logic
+  function showBox(boxId) {
+    $('body').addClass('modal-open');
+    $('.modal-backdrop-custom').fadeIn(100);
+    $('.box').hide();
+    $(boxId).fadeIn(150);
   }
-})
 
+  function hideBox() {
+    $('body').removeClass('modal-open');
+    $('.modal-backdrop-custom').fadeOut(150);
+    $('.box').fadeOut(150);
+  }
 
-      });
-
+  $(document).ready(function () {
+    // Modal box triggers
+    $("#btnLogin, #btnLoginMain").on('click', function () {
+      showBox("#loginBox");
     });
-  </script>
+
+    $("#btnSignup").on('click', function () {
+      showBox("#signupBox");
+    });
+
+    $(".close-btn, .modal-backdrop-custom").on('click', hideBox);
+
+    // Signup Validation and AJAX
+    $("#signupBtn").click(function () {
+      let email = $("#txtEmail").val();
+      let pwd = $("#txtPwd").val();
+      let userType = $("#comboUser").val();
+
+      let emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+      let pwdRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
+
+      if (email === "" || pwd === "" || userType === "") {
+        alert("Please fill all fields.");
+        return;
+      }
+      if (!emailRegex.test(email)) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+      if (!pwdRegex.test(pwd)) {
+        alert("Password must be at least 8 characters long and include uppercase, lowercase, and numbers.");
+        return;
+      }
+
+      $.ajax({
+        type: "POST",
+        url: "/server-signup",
+        data: {
+          txtEmail: email,
+          txtPwd: pwd,
+          comboUser: userType
+        }
+      })
+        .done(function (response) {
+          alert(response);
+          $("#signupForm")[0].reset();
+        })
+        .fail(function (err) {
+          alert("Error: " + err.responseText);
+        });
+    });
+
+    // Login AJAX
+    $("#loginBtn").click(function () {
+      let email = $("#loginEmail").val();
+      let pwd = $("#loginPwd").val();
+
+      if (email === "" || pwd === "") {
+        alert("Please enter both email and password.");
+        return;
+      }
+
+      $.ajax({
+        type: "GET",
+        url: "/do-login",
+        data: {
+          txtEmail: email,
+          txtPwd: pwd
+        }
+      })
+        .then(function (response) {
+          if (response === "Blocked") {
+            alert("Sorry!! Your ID is Blocked");
+          } else if (response === "Invalid") {
+            alert("Invalid email ID or password");
+          } else {
+            const role = response.trim().toLowerCase();
+            alert(`${role.charAt(0).toUpperCase() + role.slice(1)} login successful! Redirecting to dashboard...`);
+            // You can redirect to dashboard here
+            // window.location.href = `/${role}-dashboard`;
+          }
+        });
+    });
+
+    // Reach Us Form Submit Handler — CORRECTLY PLACED HERE
+    $('#reachUsForm').on('submit', function (e) {
+      e.preventDefault();
+      const data = {
+        name: $('#reachName').val(),
+        email: $('#reachEmail').val(),
+        message: $('#reachMessage').val()
+      };
+
+      $.ajax({
+        type: 'POST',
+        url: '/api/reach-us',
+        data: data,
+        success: function (response) {
+          alert(response);
+          $('#reachUsForm')[0].reset();
+        },
+        error: function (xhr) {
+          alert('Failed to send message: ' + xhr.responseText);
+        }
+      });
+    });
+
+    // Realtime Email Validation
+    $("#txtEmail").keyup(function () {
+      let email = $(this).val();
+      let regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+      if (email === "") {
+        $("#errMsgE").html("Email cannot be empty.").addClass("not-ok").removeClass("ok");
+      } else if (!regex.test(email)) {
+        $("#errMsgE").html("Invalid Email ID format.").addClass("not-ok").removeClass("ok");
+      } else {
+        $("#errMsgE").html("Looks good!").addClass("ok").removeClass("not-ok");
+      }
+    });
+
+    // Password Strength Validation
+    $("#txtPwd").blur(function () {
+      let regex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
+      let pwd = $(this).val();
+      if (pwd === "") {
+        $("#lblPwd").html("Password cannot be empty.").addClass("not-ok").removeClass("ok");
+      } else if (regex.test(pwd)) {
+        $("#lblPwd").html("Strong password!").addClass("ok").removeClass("not-ok");
+      } else {
+        $("#lblPwd").html("Password must be 8+ chars, with uppercase, lowercase, and numbers.").addClass("not-ok").removeClass("ok");
+      }
+    });
+
+    // Toggle Eye Icon - Signup
+    $("#eye").click(function () {
+      const input = $("#txtPwd");
+      input.attr("type", input.attr("type") === "password" ? "text" : "password");
+      $(this).toggleClass("fa-eye fa-eye-slash");
+    });
+
+    // Toggle Eye Icon - Login
+    $("#loginEye").click(function () {
+      const input = $("#loginPwd");
+      input.attr("type", input.attr("type") === "password" ? "text" : "password");
+      $(this).toggleClass("fa-eye fa-eye-slash");
+    });
+  });
+</script>
+
 </head>
 
 <body class="bg-light">
-
-  <div class="container text-center mt-4">
-    <button id="btnLogin" class="btn btn-outline-primary me-2">Login</button>
-    <button id="btnSignup" class="btn btn-primary">Signup</button>
-    <a href="./org-dash.html" class="btn btn-primary">org-dash</a>
-    <a href="./player-dash.html" class="btn btn-primary">Player-dash</a>
-    <a href="./dashAdmin.html" class="btn btn-primary">Admin-dash</a>
-
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="#"><i class="fas fa-gamepad me-2"></i>GlitchBase</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="#ourserv"><i class="fas fa-home me-1"></i>Our Services</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#ourmiss"><i class="fas fa-trophy me-1"></i>Our Mission</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#reachus"><i class="fas fa-users me-1"></i>Reach Us</a>
+        </li>
+        <li class="nav-item">
+          <button id="btnLogin" class="btn btn-outline-light ms-2">
+            <i class="fas fa-sign-in-alt me-1"></i>Login
+          </button>
+          <button id="btnSignup" class="btn btn-outline-light ms-2">
+            <i class="fas fa-sign-in-alt me-1"></i>Sign up
+          </button>
+        </li>
+      </ul>
+    </div>
   </div>
+</nav>
 
-  <!-- Signup Box -->
+
+  <!-- MODAL BACKDROP -->
+  <div class="modal-backdrop-custom"></div>
+
+  <!-- Signup Box (Modal Style) -->
   <div id="signupBox" class="box">
     <span class="close-btn">&times;</span>
     <h3 class="text-center mb-4">Signup</h3>
     <form id="signupForm">
       <div class="mb-3">
         <label>Email ID</label>
-        <input type="email" class="form-control" name="txtEmail" id="txtEmail" required />
+        <input type="email" class="form-control" id="txtEmail" required />
+        <span id="errMsgE" class="validation-message"></span>
       </div>
-      <div class="mb-3">
+      <div class="mb-3 password-wrapper">
         <label>Password</label>
-        <input type="password" class="form-control" name="txtPwd" id="txtPwd" required />
+        <input type="password" class="form-control" id="txtPwd" required />
+        <span class="eye-icon fa fa-eye" id="eye"></span>
+        <span id="lblPwd" class="validation-message"></span>
       </div>
       <div class="mb-3">
         <label>User Type</label>
-        <select class="form-select" name="comboUser" id="comboUser" required>
+        <select class="form-select" id="comboUser" required>
+          <option value="">Select...</option>
           <option value="player">Player</option>
           <option value="organizer">Organizer</option>
         </select>
@@ -190,7 +240,7 @@
     </form>
   </div>
 
-  <!-- Login Box -->
+  <!-- Login Box (Modal Style) -->
   <div id="loginBox" class="box">
     <span class="close-btn">&times;</span>
     <h3 class="text-center mb-4">Login</h3>
@@ -199,14 +249,151 @@
         <label>Email ID</label>
         <input type="email" class="form-control" id="loginEmail" required />
       </div>
-      <div class="mb-3">
+      <div class="mb-3 password-wrapper">
         <label>Password</label>
         <input type="password" class="form-control" id="loginPwd" required />
+        <span class="eye-icon fa fa-eye" id="loginEye"></span>
       </div>
       <button type="button" class="btn btn-primary" id="loginBtn">Login</button>
     </form>
   </div>
 
+  <!-- VIDEO SECTION -->
+  <div class="video-section position-relative">
+    <video autoplay muted loop playsinline class="w-100" id="bgVideo">
+      <source src="./uploads/video.mp4" type="video/mp4" />
+      Your browser does not support HTML5 video.
+    </video>
+    <div class="video-overlay d-flex justify-content-center align-items-center">
+      <h1 class="text-white fw-bold display-4 text-center">Welcome to GlitchBase</h1>
+    </div>
+  </div>
+
+  <!-- CAROUSEL (Bootstrap 5) -->
+  <h1 class="our-services-header text-center mb-4 mt-5" id="ourserv">Our Services</h1>
+  <div id="carouselExampleCaptions" class="carousel slide mt-5" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active"
+        aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1"
+        aria-label="Slide 2"></button>
+      <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2"
+        aria-label="Slide 3"></button>
+    </div>
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <img src="https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=900&q=80"
+          class="d-block w-100" alt="First slide">
+        <div class="carousel-caption ">
+          <h5>First slide label</h5>
+          <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80"
+          class="d-block w-100" alt="Second slide">
+        <div class="carousel-caption ">
+          <h5>Second slide label</h5>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <img src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=900&q=80"
+          class="d-block w-100" alt="Third slide">
+        <div class="carousel-caption ">
+          <h5>Third slide label</h5>
+          <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur.</p>
+        </div>
+      </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+  <h1 class="our-services-header text-center mb-4 mt-5" id="ourmiss">Our Mission</h1>
+  <section id="our-mission" class="mission-section py-5 px-3 px-md-5">
+    <div class="container d-flex flex-column flex-md-row align-items-center gap-4">
+      <div class="mission-image flex-shrink-0">
+        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80"
+          alt="Athletes playing sports"
+          style="width: 500px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" />
+      </div>
+      <div class="mission-text" style="max-width: 700px;">
+        <p class="lead text-muted mb-3">
+           Our goal is to uplift athletes, enhance the organization of sports events, and shape a future where every player has an equal opportunity to succeed — no matter their background or circumstances.
+
+        </p>
+        <p style="font-size: 0.9rem; color: #555;">
+          <strong>By connecting the dots</strong> between players and event organizers using modern technology and efficient systems, we aim to build a platform that honors skill, simplifies event management, and celebrates the true essence of sportsmanship.
+
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- REACH US SECTION -->
+  <section id="reach" class="reach-section py-5">
+    <div class="container">
+      <h1 class="fw-bold mb-4" id="reachus">Reach Us</h1>
+      <div class="row gy-4">
+        <!-- Contact Form -->
+        <div class="col-md-7">
+          <form id="reachUsForm">
+            <div class="mb-3">
+              <label for="reachName" class="form-label">Your Name</label>
+              <input id="reachName" name="name" type="text" class="form-control rounded-pill" placeholder="Enter your name" required />
+            </div>
+            <div class="mb-3">
+              <label for="reachEmail" class="form-label">Your Email</label>
+              <input id="reachEmail" name="email" type="email" class="form-control rounded-pill" placeholder="Enter your email" required />
+            </div>
+            <div class="mb-3">
+              <label for="reachMessage" class="form-label">Your Message</label>
+              <textarea id="reachMessage" name="message" class="form-control" rows="4" style="border-radius:1rem" placeholder="Write your message..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-dark w-100 rounded-pill py-2">Send Message</button>
+          </form>
+        </div>
+        <!-- Contact Info and Map -->
+        <div class="col-md-5">
+          <div class="mb-4 ms-md-2">
+            <h6><b>Contact Details</b></h6>
+            <p class="mb-1"><b>Email:</b> <a href="mailto:gargkeshav772@gmail.com"
+                class="text-decoration-none text-dark">gargkeshav772@gmail.com</a></p>
+            <p class="mb-1"><b>Phone:</b> <a href="tel:+917658043689" class="text-decoration-none text-dark">+91 97803
+                43484</a></p>
+            <div class="mt-3 mb-2">
+              <span><b>Follow Us</b></span>
+              <div>
+                <a href="https://www.linkedin.com/" target="_blank" class="me-2 fs-5 text-dark"><i
+                    class="fab fa-linkedin"></i></a>
+                <a href="https://www.instagram.com/" target="_blank" class="fs-5 text-dark"><i
+                    class="fab fa-instagram"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="ms-md-2 mb-2">
+            <div><b>Location</b></div>
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3447.8077074502844!2d74.93938724618097!3d30.21403526723161!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391732979adbfd07%3A0x7ecc6ad997d92964!2sBirla%20Mill%20Street%20Number%201%2C%20Malviya%20Nagar%2C%20Bathinda%2C%20Punjab%20151001!5e0!3m2!1sen!2sin!4v1753296151994!5m2!1sen!2sin" 
+              width="100%" height="300" style="border-radius:14px; border:0;" allowfullscreen="" loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  
+  <!-- Bootstrap JS Bundle (required for carousel, modals) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

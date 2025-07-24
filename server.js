@@ -587,3 +587,24 @@ app.post("/update-password", (req, res) => {
     }
   });
 });
+
+
+app.post("/api/reach-us", (req, res) => {
+  console.log("Received reach us data:", req.body);
+
+  const { name, email, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).send("Please provide name, email, and message.");
+  }
+
+  const sql = `INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)`;
+
+  db.query(sql, [name, email, message], (err, result) => {
+    if (err) {
+      console.error("Reach Us Insert Error:", err.message);
+      return res.status(500).send("Failed to save message.");
+    }
+    res.send("Thank you for reaching out! We will get back to you soon.");
+  });
+});
