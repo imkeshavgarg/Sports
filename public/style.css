@@ -151,7 +151,7 @@
 
 #carouselExampleCaptions img {
   height: 550px;
-  object-fit: cover;
+  object-fit: contain;
   width: 100%;
 }
 
@@ -161,6 +161,11 @@
   padding: 1rem;
   border-radius: 10px;
 }
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  background-color: #f1a2f3; /* Bootstrap danger red */
+}
+
 
 /* Responsive tweaks */
 @media (max-width: 768px) {
@@ -215,7 +220,8 @@
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
       border-radius: 12px;
       object-fit: cover;
-      height: auto;
+      height: 300px;
+      width: 100%;
     }
 
     .mission-text h2 {
